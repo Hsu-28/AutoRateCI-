@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa;
+        }
+        .converter {
+            text-align: center;
+            padding: 10px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            transform: scale(1.5); /* 放大一倍 */
+        }
+        .rate {
+            font-size: 2rem;
+            margin: 10px 0;
+        }
+        .update-time {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 20px;
+        }
+        .input-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .input-container input {
+            width: 60%;
+            padding: 5px;
+            font-size: 1.2rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: right;
+        }
+        .input-container select {
+            width: 35%;
+            padding: 5px;
+            font-size: 1.2rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        p{
+            display: inline;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="converter">
+            <p>1 新臺幣 等於</p>
+            <div class="rate">{{ formattedRate }} <p>{{ selectedCurrency }}</p></div>
+            <div class="update-time">{{ formattedTime }} [UTC]</div>
+            <div class="input-container">
+                <input type="number" v-model="inputAmount" @input="updateConvertedAmount">
+                <select disabled>
+                    <option selected>新臺幣</option>
+                </select>
+            </div>
+            <div class="input-container">
+                <input type="text" :value="convertedAmount" readonly>
+                <select v-model="selectedCurrency" @change="updateConvertedAmount">
+                    <option v-for="(value, key) in currencies" :key="key" :value="key">
+                        {{ key }}
+                    </option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                rateData: {
+                    aud_rate: "0.048000",
+                    gbp_rate: "0.230000",
+                    jpy_rate: "4.280000",
+                    usd_rate: "0.031000"
+                },
+                timestamp: '2024-08-24T03:21:50.993000',
+                currencies: {
+                    '美元': 'usd_rate',
+                    '日元': 'jpy_rate',
+                    '英鎊': 'gbp_rate',
+                    '澳幣': 'aud_rate'
+                },
+                selectedCurrency: '美元',
+                inputAmount: 1,
+                convertedAmount: 0
+            },
+            computed: {
+                formattedRate() {
+                    const rateKey = this.currencies[this.selectedCurrency];
+                    const rate = this.rateData[rateKey];
+                    return (parseFloat(rate).toFixed(3));
+                },
+                formattedTime() {
+                    const date = new Date(this.timestamp);
+                    return date.toLocaleString('zh-TW', { 
+                        weekday: 'short', 
+                        year: 'numeric', 
+                        month: '2-digit', 
+                        day: '2-digit', 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                }
+            },
+            mounted() {
+                this.fetchExchangeRates();
+            },
+            methods: {
+                async fetchExchangeRates() {
+                    try {
+                        const response = await fetch('http://127.0.0.1:5000/latest-exchange-rate');
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        const data = await response.json();
+                        this.rateData = data;
+                        this.timestamp = data.timestamp;
+                        this.updateConvertedAmount();
+                    } catch (error) {
+                        console.error('Fetch error:', error);
+                    }
+                },
+                updateConvertedAmount() {
+                    const rateKey = this.currencies[this.selectedCurrency];
+                    const rate = parseFloat(this.rateData[rateKey]);
+                    this.convertedAmount = (this.inputAmount * rate).toFixed(3);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
