@@ -1,46 +1,107 @@
 stages:
   - build
+  - push
   - test
+  - deploy
 
 variables:
+  REGISTRY: "registry.gitlab.com"
+  IMAGE_NAME: "$REGISTRY/Hsu-28/autoratecicd"
   DOCKER_DRIVER: overlay2
 
-services:
-  - docker:dind
-
-before_script:
-  - docker info
-
+# Build stage
 build_backend:
   stage: build
   script:
-    - docker-compose -f docker-compose.yml build backend
+    - docker build -t $IMAGE_NAME/backend:latest ./back-end
   tags:
     - docker
+  only:
+    - main
 
 build_frontend:
   stage: build
   script:
-    - docker-compose -f docker-compose.yml build frontend
+    - docker build -t $IMAGE_NAME/frontend:latest ./front-end
   tags:
     - docker
+  only:
+    - main
 
 build_rateapi:
   stage: build
   script:
-    - docker-compose -f docker-compose.yml build rateapi
+    - docker build -t $IMAGE_NAME/rateapi:latest ./rate-api
   tags:
     - docker
+  only:
+    - main
 
-test_containers:
+# Push stage
+push_backend:
+  stage: push
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY
+    - docker push $IMAGE_NAME/backend:latest
+  tags:
+    - docker
+  only:
+    - main
+
+push_frontend:
+  stage: push
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY
+    - docker push $IMAGE_NAME/frontend:latest
+  tags:
+    - docker
+  only:
+    - main
+
+push_rateapi:
+  stage: push
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY
+    - docker push $IMAGE_NAME/rateapi:latest
+  tags:
+    - docker
+  only:
+    - main
+
+# Test stage
+test_services:
   stage: test
   script:
+    # 啟動 SQL Server 容器
+    - docker run -d \
+        --name sqlserver \
+        -e ACCEPT_EULA=Y \
+        -e SA_PASSWORD=MyP@ssw0rd123! \
+        -p 1433:1433 \
+        --network mynetwork \
+        mcr.microsoft.com/mssql/server:2019-latest
+    
+    # 啟動其他服務
     - docker-compose -f docker-compose.yml up -d
-    - docker ps -a  # 列出所有容器以確認它們是否已啟動
-    - docker-compose -f docker-compose.yml exec backend curl -f http://localhost:5000 || exit 1
-    - docker-compose -f docker-compose.yml exec frontend curl -f http://localhost || exit 1
-    - docker-compose -f docker-compose.yml exec rateapi curl -f http://localhost:6000 || exit 1
+    - sleep 30  # 等待服務啟動
+    
+    # 在這裡添加你的測試命令
+    # 例如，運行集成測試或 API 測試等
+    - # 你的測試命令
+
+    # 注意：這裡不再停止和刪除 SQL Server 容器，以便在後續步驟中使用
+    - docker-compose -f docker-compose.yml down
   tags:
     - docker
-  after_script:
-    - docker-compose -f docker-compose.yml down
+  only:
+    - main
+
+# Deploy stage
+deploy:
+  stage: deploy
+  script:
+    - docker-compose -f docker-compose.yml up -d
+  tags:
+    - docker
+  only:
+    - main
