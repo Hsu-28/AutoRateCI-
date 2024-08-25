@@ -1,40 +1,46 @@
 stages:
   - build
   - test
-  - deploy
 
-# 构建阶段
-build:
+variables:
+  DOCKER_DRIVER: overlay2
+
+services:
+  - docker:dind
+
+before_script:
+  - docker info
+
+build_backend:
   stage: build
-  image: docker:20.10.16
-  services:
-    - docker:20.10.16-dind
   script:
-    # 构建所有服务的 Docker 镜像
-    - docker-compose build
-    # 推送每个服务的 Docker 镜像到 GitLab 容器注册表
-    - docker tag my-backend:latest registry.gitlab.com/Hsu-28/Autoratecicd/backend:latest
-    - docker push registry.gitlab.com/Hsu-28/Autoratecicd/backend:latest
-    - docker tag my-frontend:latest registry.gitlab.com/Hsu-28/Autoratecicd/frontend:latest
-    - docker push registry.gitlab.com/Hsu-28/Autoratecicd/frontend:latest
-    - docker tag my-rateapi:latest registry.gitlab.com/Hsu-28/Autoratecicd/rateapi:latest
-    - docker push registry.gitlab.com/Hsu-28/Autoratecicd/rateapi:latest
+    - docker-compose -f docker-compose.yml build backend
+  tags:
+    - docker
 
-# 测试阶段
-test:
+build_frontend:
+  stage: build
+  script:
+    - docker-compose -f docker-compose.yml build frontend
+  tags:
+    - docker
+
+build_rateapi:
+  stage: build
+  script:
+    - docker-compose -f docker-compose.yml build rateapi
+  tags:
+    - docker
+
+test_containers:
   stage: test
-  image: python:3.8
   script:
-    # 运行测试，通常在你的测试容器中
-    - docker run --rm -v $(pwd):/app -w /app my-backend:latest pytest
-
-# 部署阶段
-deploy:
-  stage: deploy
-  image: kubectl:1.21.0
-  script:
-    # 应用 Kubernetes 部署文件
-    - kubectl apply -f k8s/deployment.yaml
-  environment:
-    name: production
-  when: manual
+    - docker-compose -f docker-compose.yml up -d
+    - docker ps -a  # 列出所有容器以確認它們是否已啟動
+    - docker-compose -f docker-compose.yml exec backend curl -f http://localhost:5000 || exit 1
+    - docker-compose -f docker-compose.yml exec frontend curl -f http://localhost || exit 1
+    - docker-compose -f docker-compose.yml exec rateapi curl -f http://localhost:6000 || exit 1
+  tags:
+    - docker
+  after_script:
+    - docker-compose -f docker-compose.yml down
