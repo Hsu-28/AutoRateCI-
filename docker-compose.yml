@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=MyP@ssw0rd123!
+    ports:
+      - "1433:1433"
+    networks:
+      - mynetwork
+
+  backend:
+    build:
+      context: ./back-end
+    container_name: backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - sqlserver
+    networks:
+      - mynetwork
+    environment:
+      - SQL_SERVER=sqlserver  # 確保後端知道 SQL Server 的容器名稱和位置
+
+  frontend:
+    build:
+      context: ./front-end
+    container_name: frontend
+    ports:
+      - "80:80"
+    networks:
+      - mynetwork
+
+  rateapi:
+    build:
+      context: ./rate-api
+    container_name: rateAPI
+    ports:
+      - "6000:6000"
+    networks:
+      - mynetwork
+    depends_on:
+      - sqlserver
+    environment:
+      - SQL_SERVER=sqlserver  # 確保後端知道 SQL Server 的容器名稱和位置
+
+networks:
+  mynetwork:
+    driver: bridge

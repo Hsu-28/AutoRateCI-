@@ -127,6 +127,7 @@
             methods: {
                 async fetchExchangeRates() {
                     try {
+                        console.log('進行拿取資料')
                         const response = await fetch('http://127.0.0.1:5000/latest-exchange-rate');
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
