@@ -72,20 +72,9 @@ push_rateapi:
 test_services:
   stage: test
   script:
-    - docker run -d \
-        --name sqlserver \
-        -e ACCEPT_EULA=Y \
-        -e SA_PASSWORD=MyP@ssw0rd123! \
-        -p 1433:1433 \
-        --network mynetwork \
-        mcr.microsoft.com/mssql/server:2019-latest
-    
+    - docker run -d --name sqlserver -e ACCEPT_EULA=Y -e SA_PASSWORD=MyP@ssw0rd123! -p 1433:1433 --network mynetwork mcr.microsoft.com/mssql/server:2019-latest
     - docker-compose -f docker-compose.yml up -d
-    - sleep 30  # 等待服務啟動
-    
-    # 在這裡添加你的測試命令
-    - # 你的測試命令
-
+    - sleep 30
     - docker-compose -f docker-compose.yml down
   tags:
     - docker
