@@ -1,0 +1,31 @@
+stages: # 定義不同階段
+  - build
+  - test
+  - deploy
+
+build: # 構建階段
+  stage: build
+  image: docker:20.10.16 # 使用 Docker 鏡像
+  services:
+    - docker:20.10.16-dind # Docker in Docker 用於啟動 Docker 服務
+  script:
+    - docker build -t my-app:latest . # 構建 Docker 鏡像
+    - docker tag my-app:latest registry.gitlab.com/Hsu-28/Autoratecicd # 標記鏡像
+    - docker push registry.gitlab.com/Hsu-28/Autoratecicd # 推送到 GitLab 容器註冊表
+
+test: # 測試階段
+  stage: test
+  image: python:3.8
+  script:
+    - pip install -r requirements.txt # 安裝依賴
+    - pytest # 運行測試
+
+deploy: # 部署階段
+  stage: deploy
+  image: kubectl:1.21.0 # 使用 kubectl 鏡像
+  script:
+    - kubectl apply -f k8s/deployment.yaml # 部署到 Kubernetes
+  environment:
+    name: production # 定義環境為生產
+  when: manual # 手動觸發部署
+
