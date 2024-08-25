@@ -72,25 +72,26 @@ push_rateapi:
 test_services:
   stage: test
   script:
-    # 啟動 SQL Server 容器
-    - docker run -d \
+    - |
+      # 啟動 SQL Server 容器
+      docker run -d \
         --name sqlserver \
         -e ACCEPT_EULA=Y \
         -e SA_PASSWORD=MyP@ssw0rd123! \
         -p 1433:1433 \
         --network mynetwork \
         mcr.microsoft.com/mssql/server:2019-latest
-    
-    # 啟動其他服務
-    - docker-compose -f docker-compose.yml up -d
-    - sleep 30  # 等待服務啟動
-    
-    # 在這裡添加你的測試命令
-    # 例如，運行集成測試或 API 測試等
-    - # 你的測試命令
+      
+      # 啟動其他服務
+      docker-compose -f docker-compose.yml up -d
+      sleep 30  # 等待服務啟動
+      
+      # 在這裡添加你的測試命令
+      # 例如，運行集成測試或 API 測試等
+      # 你的測試命令
 
-    # 注意：這裡不再停止和刪除 SQL Server 容器，以便在後續步驟中使用
-    - docker-compose -f docker-compose.yml down
+      # 注意：這裡不再停止和刪除 SQL Server 容器，以便在後續步驟中使用
+      docker-compose -f docker-compose.yml down
   tags:
     - docker
   only:
