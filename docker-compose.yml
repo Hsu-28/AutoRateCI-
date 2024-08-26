@@ -23,7 +23,7 @@ services:
     networks:
       - mynetwork
     environment:
-      - SQL_SERVER=sqlserver  # 確保後端知道 SQL Server 的容器名稱和位置
+      - SQL_SERVER=sqlserver
 
   frontend:
     build:
@@ -45,7 +45,16 @@ services:
     depends_on:
       - sqlserver
     environment:
-      - SQL_SERVER=sqlserver  # 確保後端知道 SQL Server 的容器名稱和位置
+      - SQL_SERVER=sqlserver
+
+  gitlab-runner:
+    image: gitlab/gitlab-runner:latest
+    container_name: gitlab-runner
+    volumes:
+      - ./gitlab-runner/config:/etc/gitlab-runner
+    restart: always
+    networks:
+      - mynetwork
 
 networks:
   mynetwork:
