@@ -3,10 +3,6 @@ image: docker:latest
 services:
   - docker:dind
 
-variables:
-  DOCKER_DRIVER: overlay2
-  DOCKER_TLS_CERTDIR: ""
-
 stages:
   - build
   - push
@@ -15,7 +11,8 @@ stages:
 
 variables:
   REGISTRY: "registry.gitlab.com"
-  IMAGE_NAME: "$REGISTRY/hsu-28/autoratecicd"
+  REGISTRY2: "docker.io"
+  IMAGE_NAME: "$REGISTRY/Hsu-28/autoratecicd"
 
 # Build stage
 build_backend:
@@ -43,7 +40,7 @@ build_rateapi:
 push_backend:
   stage: push
   script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY2
     - docker push $IMAGE_NAME/backend:latest
   only:
     - master
@@ -51,7 +48,7 @@ push_backend:
 push_frontend:
   stage: push
   script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY2
     - docker push $IMAGE_NAME/frontend:latest
   only:
     - master
@@ -59,7 +56,7 @@ push_frontend:
 push_rateapi:
   stage: push
   script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY2
     - docker push $IMAGE_NAME/rateapi:latest
   only:
     - master
