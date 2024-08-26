@@ -15,7 +15,7 @@ stages:
 
 variables:
   REGISTRY: "registry.gitlab.com"
-  IMAGE_NAME: "$REGISTRY/Hsu-28/autoratecicd"
+  IMAGE_NAME: "$REGISTRY/hsu-28/autoratecicd"
 
 # Build stage
 build_backend:
