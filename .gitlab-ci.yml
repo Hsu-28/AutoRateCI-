@@ -88,7 +88,7 @@ test_services:
     
     # 在這裡添加你的測試命令
     # 例如，運行集成測試或 API 測試等
-    - # 你的測試命令
+
 
     # 注意：這裡不再停止和刪除 SQL Server 容器，以便在後續步驟中使用
     - docker-compose -f docker-compose.yml down
