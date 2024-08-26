@@ -14,8 +14,6 @@ build_backend:
   stage: build
   script:
     - docker build -t $IMAGE_NAME/backend:latest ./back-end
-  tags:
-    - docker
   only:
     - master
     - master
@@ -24,8 +22,6 @@ build_frontend:
   stage: build
   script:
     - docker build -t $IMAGE_NAME/frontend:latest ./front-end
-  tags:
-    - docker
   only:
     - master
 
@@ -33,8 +29,6 @@ build_rateapi:
   stage: build
   script:
     - docker build -t $IMAGE_NAME/rateapi:latest ./rate-api
-  tags:
-    - docker
   only:
     - master
 
@@ -44,8 +38,6 @@ push_backend:
   script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY
     - docker push $IMAGE_NAME/backend:latest
-  tags:
-    - docker
   only:
     - master
 
@@ -54,8 +46,6 @@ push_frontend:
   script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY
     - docker push $IMAGE_NAME/frontend:latest
-  tags:
-    - docker
   only:
     - master
 
@@ -64,8 +54,6 @@ push_rateapi:
   script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY
     - docker push $IMAGE_NAME/rateapi:latest
-  tags:
-    - docker
   only:
     - master
 
@@ -91,8 +79,6 @@ test_services:
 
     # 注意：這裡不再停止和刪除 SQL Server 容器，以便在後續步驟中使用
     - docker-compose -f docker-compose.yml down
-  tags:
-    - docker
   only:
     - master
 
@@ -101,7 +87,5 @@ deploy:
   stage: deploy
   script:
     - docker-compose -f docker-compose.yml up -d
-  tags:
-    - docker
   only:
     - master
