@@ -18,6 +18,7 @@ build_backend:
   stage: build
   script:
     - docker build -t $IMAGE_NAME/backend:latest ./back-end
+    - docker images
   only:
     - master
 
@@ -25,6 +26,7 @@ build_frontend:
   stage: build
   script:
     - docker build -t $IMAGE_NAME/frontend:latest ./front-end
+    - docker images
   only:
     - master
 
@@ -32,6 +34,7 @@ build_rateapi:
   stage: build
   script:
     - docker build -t $IMAGE_NAME/rateapi:latest ./rate-api
+    - docker images
   only:
     - master
 
