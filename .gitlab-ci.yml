@@ -1,3 +1,8 @@
+image: docker:latest
+
+services:
+  - docker:dind
+
 stages:
   - build
   - push
@@ -8,29 +13,55 @@ variables:
   REGISTRY: "registry.gitlab.com"
   IMAGE_NAME: "$REGISTRY/hsu-28/autoratecicd"
 
-# Build and push backend
-build_and_push_backend:
+# Build stage
+build_backend:
   stage: build
   script:
     - docker build -t $IMAGE_NAME/backend:latest ./back-end
+    - docker images
+    - docker inspect $IMAGE_NAME/backend:latest
+  only:
+    - master
+
+build_frontend:
+  stage: build
+  script:
+    - docker build -t $IMAGE_NAME/frontend:latest ./front-end
+    - docker images
+    - docker inspect $IMAGE_NAME/frontend:latest
+  only:
+    - master
+
+build_rateapi:
+  stage: build
+  script:
+    - docker build -t $IMAGE_NAME/rateapi:latest ./rate-api
+    - docker images
+    - docker inspect $IMAGE_NAME/rateapi:latest
+  only:
+    - master
+
+# Push stage
+push_backend:
+  stage: push
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY
     - docker push $IMAGE_NAME/backend:latest
   only:
     - master
 
-# Build and push frontend
-build_and_push_frontend:
-  stage: build
+push_frontend:
+  stage: push
   script:
-    - docker build -t $IMAGE_NAME/frontend:latest ./front-end
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY
     - docker push $IMAGE_NAME/frontend:latest
   only:
     - master
 
-# Build and push rateapi
-build_and_push_rateapi:
-  stage: build
+push_rateapi:
+  stage: push
   script:
-    - docker build -t $IMAGE_NAME/rateapi:latest ./rate-api
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY
     - docker push $IMAGE_NAME/rateapi:latest
   only:
     - master
@@ -40,7 +71,7 @@ test_services:
   stage: test
   script:
     - docker-compose -f docker-compose.yml up -d
-    - sleep 30  # 等待服務啟動
+    - sleep 30  # 等待服务启动
     - docker-compose -f docker-compose.yml down
   only:
     - master
