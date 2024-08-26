@@ -47,15 +47,6 @@ services:
     environment:
       - SQL_SERVER=sqlserver
 
-  gitlab-runner:
-    image: gitlab/gitlab-runner:latest
-    container_name: gitlab-runner
-    volumes:
-      - ./gitlab-runner/config:/etc/gitlab-runner
-    restart: always
-    networks:
-      - mynetwork
-
 networks:
   mynetwork:
     driver: bridge
