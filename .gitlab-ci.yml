@@ -3,10 +3,6 @@ image: docker:latest
 services:
   - docker:dind
 
-variables:
-  DOCKER_DRIVER: overlay2
-  DOCKER_TLS_CERTDIR: ""
-
 stages:
   - build
   - push
@@ -15,13 +11,14 @@ stages:
 
 variables:
   REGISTRY: "registry.gitlab.com"
-  IMAGE_NAME: "$REGISTRY/Hsu-28/autoratecicd"
+  IMAGE_NAME: "$REGISTRY/hsu-28/autoratecicd"
 
 # Build stage
 build_backend:
   stage: build
   script:
     - docker build -t $IMAGE_NAME/backend:latest ./back-end
+    - docker images
   only:
     - master
 
@@ -29,6 +26,7 @@ build_frontend:
   stage: build
   script:
     - docker build -t $IMAGE_NAME/frontend:latest ./front-end
+    - docker images
   only:
     - master
 
@@ -36,6 +34,7 @@ build_rateapi:
   stage: build
   script:
     - docker build -t $IMAGE_NAME/rateapi:latest ./rate-api
+    - docker images
   only:
     - master
 
