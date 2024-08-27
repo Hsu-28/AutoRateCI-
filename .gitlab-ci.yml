@@ -5,7 +5,6 @@ services:
 
 stages:
   - build
-  - push
   - test
   - deploy
 
@@ -19,6 +18,7 @@ build_backend:
   script:
     - docker build -t $IMAGE_NAME/backend:latest ./back-end
     - docker images
+    - docker inspect $IMAGE_NAME/backend:latest
   only:
     - master
 
@@ -27,6 +27,7 @@ build_frontend:
   script:
     - docker build -t $IMAGE_NAME/frontend:latest ./front-end
     - docker images
+    - docker inspect $IMAGE_NAME/frontend:latest
   only:
     - master
 
@@ -35,31 +36,7 @@ build_rateapi:
   script:
     - docker build -t $IMAGE_NAME/rateapi:latest ./rate-api
     - docker images
-  only:
-    - master
-
-# Push stage
-push_backend:
-  stage: push
-  script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY
-    - docker push $IMAGE_NAME/backend:latest
-  only:
-    - master
-
-push_frontend:
-  stage: push
-  script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY
-    - docker push $IMAGE_NAME/frontend:latest
-  only:
-    - master
-
-push_rateapi:
-  stage: push
-  script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY
-    - docker push $IMAGE_NAME/rateapi:latest
+    - docker inspect $IMAGE_NAME/rateapi:latest
   only:
     - master
 
